@@ -1,0 +1,2180 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Odoo POS Cafe API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication
+  - name: products
+    description: Products management
+  - name: categories
+    description: Product categories
+  - name: paymentMethods
+    description: Payment methods configuration
+  - name: floors
+    description: Floor plans
+  - name: tables
+    description: Tables
+  - name: customers
+    description: Customers
+  - name: posConfig
+    description: POS Configuration
+  - name: sessions
+    description: POS Sessions
+  - name: orders
+    description: Orders
+  - name: payments
+    description: Payments
+  - name: kitchen
+    description: Kitchen display
+  - name: reporting
+    description: Analytics and reporting
+  - name: selfOrder
+    description: Self-order kiosk
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # Auth
+  /auth/signup:
+    post:
+      operationId: signup
+      tags: [auth]
+      summary: Register new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupBody"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  # Categories
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List all categories
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductCategory"
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryBody"
+      responses:
+        "201":
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductCategory"
+
+  /categories/{id}:
+    put:
+      operationId: updateCategory
+      tags: [categories]
+      summary: Update category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCategoryBody"
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductCategory"
+    delete:
+      operationId: deleteCategory
+      tags: [categories]
+      summary: Delete category
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # Products
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List all products
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Products list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductListResponse"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create product
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "201":
+          description: Product created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get product by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    put:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateProductBody"
+      responses:
+        "200":
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /products/{id}/variants:
+    post:
+      operationId: createProductVariant
+      tags: [products]
+      summary: Add variant to product
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateVariantBody"
+      responses:
+        "201":
+          description: Variant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductVariant"
+
+  /products/variants/{variantId}:
+    delete:
+      operationId: deleteProductVariant
+      tags: [products]
+      summary: Delete product variant
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: variantId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # Payment Methods
+  /payment-methods:
+    get:
+      operationId: listPaymentMethods
+      tags: [paymentMethods]
+      summary: List payment methods
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payment methods list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaymentMethod"
+
+  /payment-methods/{id}:
+    put:
+      operationId: updatePaymentMethod
+      tags: [paymentMethods]
+      summary: Update payment method
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePaymentMethodBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentMethod"
+
+  # Floors
+  /floors:
+    get:
+      operationId: listFloors
+      tags: [floors]
+      summary: List floors
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Floors list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Floor"
+    post:
+      operationId: createFloor
+      tags: [floors]
+      summary: Create floor
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFloorBody"
+      responses:
+        "201":
+          description: Floor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Floor"
+
+  /floors/{id}:
+    put:
+      operationId: updateFloor
+      tags: [floors]
+      summary: Update floor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFloorBody"
+      responses:
+        "200":
+          description: Floor updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Floor"
+    delete:
+      operationId: deleteFloor
+      tags: [floors]
+      summary: Delete floor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /floors/{id}/tables:
+    get:
+      operationId: getFloorTables
+      tags: [floors]
+      summary: Get tables for floor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Tables list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Table"
+
+  # Tables
+  /tables:
+    post:
+      operationId: createTable
+      tags: [tables]
+      summary: Create table
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTableBody"
+      responses:
+        "201":
+          description: Table created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Table"
+
+  /tables/{id}:
+    put:
+      operationId: updateTable
+      tags: [tables]
+      summary: Update table
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTableBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Table"
+    delete:
+      operationId: deleteTable
+      tags: [tables]
+      summary: Delete table
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # Customers
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Customers list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CustomerWithStats"
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create customer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerBody"
+      responses:
+        "201":
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+
+  /customers/{id}:
+    put:
+      operationId: updateCustomer
+      tags: [customers]
+      summary: Update customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      summary: Delete customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # POS Config
+  /pos-config:
+    get:
+      operationId: listPosConfig
+      tags: [posConfig]
+      summary: List POS configs
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: POS config list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PosConfig"
+    post:
+      operationId: createPosConfig
+      tags: [posConfig]
+      summary: Create POS config
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePosConfigBody"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosConfig"
+
+  /pos-config/{id}:
+    delete:
+      operationId: deletePosConfig
+      tags: [posConfig]
+      summary: Delete POS config
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  # Sessions
+  /sessions/active:
+    get:
+      operationId: getActiveSession
+      tags: [sessions]
+      summary: Get active POS session
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Active session (or null)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosSessionWithConfig"
+
+  /sessions/open:
+    post:
+      operationId: openSession
+      tags: [sessions]
+      summary: Open a new POS session
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OpenSessionBody"
+      responses:
+        "201":
+          description: Session opened
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosSession"
+
+  /sessions/{id}/close:
+    post:
+      operationId: closeSession
+      tags: [sessions]
+      summary: Close a POS session
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Session closed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PosSession"
+
+  # Orders
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, PAID]
+        - name: customerId
+          in: query
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Orders list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderSummary"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create order
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    delete:
+      operationId: deleteOrder
+      tags: [orders]
+      summary: Delete draft order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /orders/{id}/status:
+    put:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Update order status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderStatusBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}/lines:
+    post:
+      operationId: addOrderLine
+      tags: [orders]
+      summary: Add line to order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddOrderLineBody"
+      responses:
+        "201":
+          description: Line added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderLine"
+
+  /orders/{id}/lines/{lineId}:
+    put:
+      operationId: updateOrderLine
+      tags: [orders]
+      summary: Update order line
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lineId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderLineBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderLine"
+    delete:
+      operationId: deleteOrderLine
+      tags: [orders]
+      summary: Remove order line
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: lineId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+
+  /orders/table/{tableId}:
+    get:
+      operationId: getTableOrder
+      tags: [orders]
+      summary: Get active order for table
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tableId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Active order for table (or null)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  # Payments
+  /payments:
+    get:
+      operationId: listPayments
+      tags: [payments]
+      summary: List payments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Payments list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Payment"
+    post:
+      operationId: createPayment
+      tags: [payments]
+      summary: Create payment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentBody"
+      responses:
+        "201":
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Payment"
+
+  # Kitchen
+  /kitchen/tickets:
+    get:
+      operationId: listKitchenTickets
+      tags: [kitchen]
+      summary: List kitchen tickets
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [TO_COOK, PREPARING, COMPLETED]
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Kitchen tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/KitchenTicket"
+    post:
+      operationId: createKitchenTicket
+      tags: [kitchen]
+      summary: Create kitchen ticket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateKitchenTicketBody"
+      responses:
+        "201":
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KitchenTicket"
+
+  /kitchen/tickets/{id}/status:
+    put:
+      operationId: updateKitchenTicketStatus
+      tags: [kitchen]
+      summary: Update kitchen ticket status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateKitchenTicketStatusBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KitchenTicket"
+
+  /kitchen/tickets/{id}/items/{itemId}:
+    put:
+      operationId: updateKitchenTicketItem
+      tags: [kitchen]
+      summary: Mark ticket item as prepared
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateKitchenItemBody"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KitchenTicketItem"
+
+  # Reporting
+  /reporting/dashboard:
+    get:
+      operationId: getDashboard
+      tags: [reporting]
+      summary: Get dashboard data
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+        - name: sessionId
+          in: query
+          schema:
+            type: string
+        - name: responsibleId
+          in: query
+          schema:
+            type: string
+        - name: productId
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardData"
+
+  # Self Order
+  /self-order/{token}:
+    get:
+      operationId: getSelfOrderInfo
+      tags: [selfOrder]
+      summary: Get table info by token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Table info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SelfOrderInfo"
+        "404":
+          description: Token not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /self-order/{token}/order:
+    post:
+      operationId: createSelfOrder
+      tags: [selfOrder]
+      summary: Create self-order from token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSelfOrderBody"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /self-order/{token}/history:
+    get:
+      operationId: getSelfOrderHistory
+      tags: [selfOrder]
+      summary: Get order history for token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Order history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderWithTicket"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, CASHIER]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - email
+        - role
+        - createdAt
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: "#/components/schemas/User"
+      required:
+        - token
+        - user
+
+    SignupBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 6
+        role:
+          type: string
+          enum: [ADMIN, CASHIER]
+      required:
+        - name
+        - email
+        - password
+
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - email
+        - password
+
+    ProductCategory:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        color:
+          type: string
+      required:
+        - id
+        - name
+        - color
+
+    CreateCategoryBody:
+      type: object
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+      required:
+        - name
+        - color
+
+    ProductVariant:
+      type: object
+      properties:
+        id:
+          type: string
+        productId:
+          type: string
+        attribute:
+          type: string
+        value:
+          type: string
+        extraPrice:
+          type: number
+        unit:
+          type: string
+      required:
+        - id
+        - productId
+        - attribute
+        - value
+        - extraPrice
+        - unit
+
+    CreateVariantBody:
+      type: object
+      properties:
+        attribute:
+          type: string
+        value:
+          type: string
+        extraPrice:
+          type: number
+          default: 0
+        unit:
+          type: string
+          default: "Unit"
+      required:
+        - attribute
+        - value
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        categoryId:
+          type: string
+        category:
+          $ref: "#/components/schemas/ProductCategory"
+        price:
+          type: number
+        unit:
+          type: string
+        tax:
+          type: number
+        description:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        variants:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductVariant"
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - categoryId
+        - price
+        - unit
+        - tax
+        - createdAt
+
+    ProductListResponse:
+      type: object
+      properties:
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - products
+        - total
+        - page
+        - limit
+
+    CreateProductBody:
+      type: object
+      properties:
+        name:
+          type: string
+        categoryId:
+          type: string
+        price:
+          type: number
+        unit:
+          type: string
+          default: "Unit"
+        tax:
+          type: number
+          default: 5
+        description:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+      required:
+        - name
+        - categoryId
+        - price
+
+    PaymentMethod:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          enum: [CASH, DIGITAL, UPI]
+        enabled:
+          type: boolean
+        upiId:
+          type: ["string", "null"]
+      required:
+        - id
+        - name
+        - enabled
+
+    UpdatePaymentMethodBody:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        upiId:
+          type: ["string", "null"]
+
+    Floor:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        posId:
+          type: string
+        tables:
+          type: array
+          items:
+            $ref: "#/components/schemas/Table"
+      required:
+        - id
+        - name
+        - posId
+
+    CreateFloorBody:
+      type: object
+      properties:
+        name:
+          type: string
+        posId:
+          type: string
+      required:
+        - name
+        - posId
+
+    Table:
+      type: object
+      properties:
+        id:
+          type: string
+        floorId:
+          type: string
+        tableNumber:
+          type: string
+        seats:
+          type: integer
+        active:
+          type: boolean
+        token:
+          type: string
+      required:
+        - id
+        - floorId
+        - tableNumber
+        - seats
+        - active
+        - token
+
+    CreateTableBody:
+      type: object
+      properties:
+        floorId:
+          type: string
+        tableNumber:
+          type: string
+        seats:
+          type: integer
+          default: 4
+      required:
+        - floorId
+        - tableNumber
+
+    UpdateTableBody:
+      type: object
+      properties:
+        tableNumber:
+          type: string
+        seats:
+          type: integer
+        active:
+          type: boolean
+
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        country:
+          type: string
+      required:
+        - id
+        - name
+        - country
+
+    CustomerWithStats:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        country:
+          type: string
+        totalSales:
+          type: number
+      required:
+        - id
+        - name
+        - country
+        - totalSales
+
+    CreateCustomerBody:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: ["string", "null"]
+        phone:
+          type: ["string", "null"]
+        address:
+          type: ["string", "null"]
+        city:
+          type: ["string", "null"]
+        state:
+          type: ["string", "null"]
+        country:
+          type: string
+          default: "India"
+      required:
+        - name
+
+    PosConfig:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        lastOpenedAt:
+          type: ["string", "null"]
+          format: date-time
+        lastSaleAmount:
+          type: number
+        floors:
+          type: array
+          items:
+            $ref: "#/components/schemas/Floor"
+      required:
+        - id
+        - name
+        - lastSaleAmount
+
+    CreatePosConfigBody:
+      type: object
+      properties:
+        name:
+          type: string
+      required:
+        - name
+
+    PosSession:
+      type: object
+      properties:
+        id:
+          type: string
+        posConfigId:
+          type: string
+        cashierId:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [OPEN, CLOSED]
+      required:
+        - id
+        - posConfigId
+        - cashierId
+        - openedAt
+        - status
+
+    PosSessionWithConfig:
+      type: object
+      properties:
+        id:
+          type: string
+        posConfigId:
+          type: string
+        cashierId:
+          type: string
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: ["string", "null"]
+          format: date-time
+        status:
+          type: string
+          enum: [OPEN, CLOSED]
+        pos:
+          $ref: "#/components/schemas/PosConfig"
+        cashier:
+          $ref: "#/components/schemas/User"
+      required:
+        - id
+        - posConfigId
+        - cashierId
+        - openedAt
+        - status
+
+    OpenSessionBody:
+      type: object
+      properties:
+        posConfigId:
+          type: string
+      required:
+        - posConfigId
+
+    OrderLine:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        productId:
+          type: string
+        product:
+          $ref: "#/components/schemas/Product"
+        qty:
+          type: integer
+        unitPrice:
+          type: number
+        tax:
+          type: number
+        subTotal:
+          type: number
+        total:
+          type: number
+        note:
+          type: ["string", "null"]
+      required:
+        - id
+        - orderId
+        - productId
+        - qty
+        - unitPrice
+        - tax
+        - subTotal
+        - total
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        tableId:
+          type: ["string", "null"]
+        table:
+          $ref: "#/components/schemas/Table"
+        customerId:
+          type: ["string", "null"]
+        customer:
+          $ref: "#/components/schemas/Customer"
+        status:
+          type: string
+          enum: [DRAFT, PAID]
+        createdAt:
+          type: string
+          format: date-time
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderLine"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Payment"
+      required:
+        - id
+        - sessionId
+        - status
+        - createdAt
+
+    OrderSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        tableId:
+          type: ["string", "null"]
+        table:
+          $ref: "#/components/schemas/Table"
+        customerId:
+          type: ["string", "null"]
+        customer:
+          $ref: "#/components/schemas/Customer"
+        status:
+          type: string
+          enum: [DRAFT, PAID]
+        createdAt:
+          type: string
+          format: date-time
+        total:
+          type: number
+      required:
+        - id
+        - sessionId
+        - status
+        - createdAt
+        - total
+
+    OrderWithTicket:
+      type: object
+      properties:
+        id:
+          type: string
+        sessionId:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, PAID]
+        createdAt:
+          type: string
+          format: date-time
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderLine"
+        ticket:
+          $ref: "#/components/schemas/KitchenTicket"
+      required:
+        - id
+        - sessionId
+        - status
+        - createdAt
+
+    CreateOrderBody:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        tableId:
+          type: ["string", "null"]
+        customerId:
+          type: ["string", "null"]
+      required:
+        - sessionId
+
+    UpdateOrderStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [DRAFT, PAID]
+      required:
+        - status
+
+    AddOrderLineBody:
+      type: object
+      properties:
+        productId:
+          type: string
+        qty:
+          type: integer
+          default: 1
+        note:
+          type: ["string", "null"]
+      required:
+        - productId
+
+    UpdateOrderLineBody:
+      type: object
+      properties:
+        qty:
+          type: integer
+        note:
+          type: ["string", "null"]
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        method:
+          type: string
+          enum: [CASH, DIGITAL, UPI]
+        amount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - orderId
+        - method
+        - amount
+        - createdAt
+
+    CreatePaymentBody:
+      type: object
+      properties:
+        orderId:
+          type: string
+        method:
+          type: string
+          enum: [CASH, DIGITAL, UPI]
+        amount:
+          type: number
+      required:
+        - orderId
+        - method
+        - amount
+
+    KitchenTicketItem:
+      type: object
+      properties:
+        id:
+          type: string
+        ticketId:
+          type: string
+        orderLineId:
+          type: string
+        orderLine:
+          $ref: "#/components/schemas/OrderLine"
+        prepared:
+          type: boolean
+      required:
+        - id
+        - ticketId
+        - orderLineId
+        - prepared
+
+    KitchenTicket:
+      type: object
+      properties:
+        id:
+          type: string
+        orderId:
+          type: string
+        order:
+          $ref: "#/components/schemas/OrderSummary"
+        status:
+          type: string
+          enum: [TO_COOK, PREPARING, COMPLETED]
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/KitchenTicketItem"
+      required:
+        - id
+        - orderId
+        - status
+        - createdAt
+
+    CreateKitchenTicketBody:
+      type: object
+      properties:
+        orderId:
+          type: string
+      required:
+        - orderId
+
+    UpdateKitchenTicketStatusBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [TO_COOK, PREPARING, COMPLETED]
+      required:
+        - status
+
+    UpdateKitchenItemBody:
+      type: object
+      properties:
+        prepared:
+          type: boolean
+      required:
+        - prepared
+
+    DashboardData:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+        avgOrder:
+          type: number
+        totalRevenue:
+          type: number
+        salesByDay:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+              amount:
+                type: number
+            required:
+              - date
+              - amount
+        salesByCategory:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryId:
+                type: string
+              name:
+                type: string
+              color:
+                type: string
+              amount:
+                type: number
+              percentage:
+                type: number
+            required:
+              - categoryId
+              - name
+              - color
+              - amount
+              - percentage
+        topProducts:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              name:
+                type: string
+              qty:
+                type: integer
+              revenue:
+                type: number
+            required:
+              - productId
+              - name
+              - qty
+              - revenue
+        topCategories:
+          type: array
+          items:
+            type: object
+            properties:
+              categoryId:
+                type: string
+              name:
+                type: string
+              color:
+                type: string
+              revenue:
+                type: number
+            required:
+              - categoryId
+              - name
+              - color
+              - revenue
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderSummary"
+      required:
+        - totalOrders
+        - avgOrder
+        - totalRevenue
+        - salesByDay
+        - salesByCategory
+        - topProducts
+        - topCategories
+        - recentOrders
+
+    SelfOrderInfo:
+      type: object
+      properties:
+        tableId:
+          type: string
+        tableNumber:
+          type: string
+        floorName:
+          type: string
+        posName:
+          type: string
+        categories:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProductCategory"
+        products:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        paymentMethods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentMethod"
+      required:
+        - tableId
+        - tableNumber
+        - floorName
+        - posName
+        - categories
+        - products
+        - paymentMethods
+
+    CreateSelfOrderBody:
+      type: object
+      properties:
+        sessionId:
+          type: ["string", "null"]
+        lines:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              qty:
+                type: integer
+              note:
+                type: ["string", "null"]
+            required:
+              - productId
+              - qty
+      required:
+        - lines

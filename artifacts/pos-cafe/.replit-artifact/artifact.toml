@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Odoo POS Cafe"
+version = "1.0.0"
+id = "artifacts/pos-cafe"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20587
+
+[services.development]
+run = "pnpm --filter @workspace/pos-cafe run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pos-cafe", "run", "build" ]
+publicDir = "artifacts/pos-cafe/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20587"
+BASE_PATH = "/"
