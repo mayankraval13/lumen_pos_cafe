@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import os from "os";
-import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rawPort = process.env.PORT ?? "5173";
 const port = Number(rawPort);
@@ -23,8 +22,6 @@ if (Number.isNaN(port) || port <= 0) {
 
 const basePath = process.env.BASE_PATH ?? "/";
 
-const isReplit = process.env.REPL_ID !== undefined;
-
 const LOCAL_API_PORT = process.env.VITE_API_PORT?.trim() || "3001";
 /** Prefer 127.0.0.1 over localhost to avoid IPv6 (::1) vs IPv4 listen mismatches on Windows. */
 const apiProxyTarget =
@@ -35,7 +32,7 @@ const apiDevProxy: Record<string, import("vite").ProxyOptions> = {
   "/socket.io": { target: apiProxyTarget, changeOrigin: true, ws: true },
 };
 
-/** Proxy /api to the Node server. Set VITE_DISABLE_API_PROXY=true only if another layer handles API (e.g. Replit). */
+/** Proxy /api to the Node server. Set VITE_DISABLE_API_PROXY=true to disable. */
 const useApiDevProxy = process.env.VITE_DISABLE_API_PROXY !== "true";
 
 export default defineConfig({
@@ -46,19 +43,6 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" && isReplit
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer({
-              root: path.resolve(import.meta.dirname, ".."),
-            }),
-          ),
-          await import("@replit/vite-plugin-dev-banner").then((m) =>
-            m.devBanner(),
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
@@ -86,7 +70,6 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
-    // `vite preview` does not inherit `server.proxy` — without this, /api/* returns 404.
     proxy: useApiDevProxy ? { ...apiDevProxy } : undefined,
   },
 });
