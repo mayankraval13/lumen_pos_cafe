@@ -334,6 +334,9 @@ export const ListFloorsResponseItem = zod.object({
         seats: zod.number(),
         active: zod.boolean(),
         token: zod.string(),
+        activeOrderId: zod.string().nullish(),
+        activeOrderSessionId: zod.string().nullish(),
+        activeOrderTotal: zod.number().nullish(),
       }),
     )
     .optional(),
@@ -373,6 +376,9 @@ export const UpdateFloorResponse = zod.object({
         seats: zod.number(),
         active: zod.boolean(),
         token: zod.string(),
+        activeOrderId: zod.string().nullish(),
+        activeOrderSessionId: zod.string().nullish(),
+        activeOrderTotal: zod.number().nullish(),
       }),
     )
     .optional(),
@@ -399,6 +405,9 @@ export const GetFloorTablesResponseItem = zod.object({
   seats: zod.number(),
   active: zod.boolean(),
   token: zod.string(),
+  activeOrderId: zod.string().nullish(),
+  activeOrderSessionId: zod.string().nullish(),
+  activeOrderTotal: zod.number().nullish(),
 });
 export const GetFloorTablesResponse = zod.array(GetFloorTablesResponseItem);
 
@@ -433,6 +442,9 @@ export const UpdateTableResponse = zod.object({
   seats: zod.number(),
   active: zod.boolean(),
   token: zod.string(),
+  activeOrderId: zod.string().nullish(),
+  activeOrderSessionId: zod.string().nullish(),
+  activeOrderTotal: zod.number().nullish(),
 });
 
 /**
@@ -542,6 +554,9 @@ export const ListPosConfigResponseItem = zod.object({
               seats: zod.number(),
               active: zod.boolean(),
               token: zod.string(),
+              activeOrderId: zod.string().nullish(),
+              activeOrderSessionId: zod.string().nullish(),
+              activeOrderTotal: zod.number().nullish(),
             }),
           )
           .optional(),
@@ -596,6 +611,9 @@ export const GetActiveSessionResponse = zod.object({
                   seats: zod.number(),
                   active: zod.boolean(),
                   token: zod.string(),
+                  activeOrderId: zod.string().nullish(),
+                  activeOrderSessionId: zod.string().nullish(),
+                  activeOrderTotal: zod.number().nullish(),
                 }),
               )
               .optional(),
@@ -666,6 +684,9 @@ export const ListOrdersResponseItem = zod.object({
       seats: zod.number(),
       active: zod.boolean(),
       token: zod.string(),
+      activeOrderId: zod.string().nullish(),
+      activeOrderSessionId: zod.string().nullish(),
+      activeOrderTotal: zod.number().nullish(),
     })
     .optional(),
   customerId: zod.string().nullish(),
@@ -715,6 +736,9 @@ export const GetOrderResponse = zod.object({
       seats: zod.number(),
       active: zod.boolean(),
       token: zod.string(),
+      activeOrderId: zod.string().nullish(),
+      activeOrderSessionId: zod.string().nullish(),
+      activeOrderTotal: zod.number().nullish(),
     })
     .optional(),
   customerId: zod.string().nullish(),
@@ -822,6 +846,9 @@ export const UpdateOrderStatusResponse = zod.object({
       seats: zod.number(),
       active: zod.boolean(),
       token: zod.string(),
+      activeOrderId: zod.string().nullish(),
+      activeOrderSessionId: zod.string().nullish(),
+      activeOrderTotal: zod.number().nullish(),
     })
     .optional(),
   customerId: zod.string().nullish(),
@@ -998,6 +1025,9 @@ export const GetTableOrderResponse = zod.object({
       seats: zod.number(),
       active: zod.boolean(),
       token: zod.string(),
+      activeOrderId: zod.string().nullish(),
+      activeOrderSessionId: zod.string().nullish(),
+      activeOrderTotal: zod.number().nullish(),
     })
     .optional(),
   customerId: zod.string().nullish(),
@@ -1126,6 +1156,9 @@ export const ListKitchenTicketsResponseItem = zod.object({
           seats: zod.number(),
           active: zod.boolean(),
           token: zod.string(),
+          activeOrderId: zod.string().nullish(),
+          activeOrderSessionId: zod.string().nullish(),
+          activeOrderTotal: zod.number().nullish(),
         })
         .optional(),
       customerId: zod.string().nullish(),
@@ -1242,6 +1275,9 @@ export const UpdateKitchenTicketStatusResponse = zod.object({
           seats: zod.number(),
           active: zod.boolean(),
           token: zod.string(),
+          activeOrderId: zod.string().nullish(),
+          activeOrderSessionId: zod.string().nullish(),
+          activeOrderTotal: zod.number().nullish(),
         })
         .optional(),
       customerId: zod.string().nullish(),
@@ -1444,6 +1480,9 @@ export const GetDashboardResponse = zod.object({
           seats: zod.number(),
           active: zod.boolean(),
           token: zod.string(),
+          activeOrderId: zod.string().nullish(),
+          activeOrderSessionId: zod.string().nullish(),
+          activeOrderTotal: zod.number().nullish(),
         })
         .optional(),
       customerId: zod.string().nullish(),
@@ -1621,6 +1660,9 @@ export const GetSelfOrderHistoryResponseItem = zod.object({
               seats: zod.number(),
               active: zod.boolean(),
               token: zod.string(),
+              activeOrderId: zod.string().nullish(),
+              activeOrderSessionId: zod.string().nullish(),
+              activeOrderTotal: zod.number().nullish(),
             })
             .optional(),
           customerId: zod.string().nullish(),

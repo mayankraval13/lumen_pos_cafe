@@ -36,6 +36,7 @@ import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
+import { resolveRegisterProductImage } from '../../lib/productImage';
 
 export default function WaiterPOS() {
   const [, setLocation] = useLocation();
@@ -113,10 +114,17 @@ export default function WaiterPOS() {
   }, [sessionOrders]);
 
   const tableOrderMap = useMemo(() => {
-    const map: Record<string, any> = { ...sessionTableOrderMap };
-    (tablesData || []).forEach((table: any) => {
+    const map: Record<string, OrderSummary> = { ...sessionTableOrderMap };
+    (tablesData || []).forEach((table) => {
       if (table.activeOrderId && !map[table.id]) {
-        map[table.id] = { id: table.activeOrderId, tableId: table.id, status: 'DRAFT', source: 'cross-session' };
+        map[table.id] = {
+          id: table.activeOrderId,
+          sessionId: table.activeOrderSessionId ?? '',
+          tableId: table.id,
+          status: 'DRAFT',
+          createdAt: '',
+          total: table.activeOrderTotal ?? 0,
+        };
       }
     });
     return map;
@@ -141,6 +149,10 @@ export default function WaiterPOS() {
         refetchTables();
         toast.info(`New self-order at Table ${data.tableNumber || ''}`, { duration: 6000 });
       }
+    });
+    on('order:updated', () => {
+      refetchTables();
+      refetchOrders();
     });
     on('payment:confirmed', (data: any) => {
       if (data?.source === 'CUSTOMER') {
@@ -552,7 +564,7 @@ export default function WaiterPOS() {
                         <div className="mt-auto pt-2 border-t border-amber-200">
                           <div className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Occupied</div>
                           <div className="text-lg font-extrabold text-amber-700 leading-tight">
-                            ₹{(occupying as any).total?.toFixed(2) || '0.00'}
+                            ₹{(occupying.total ?? table.activeOrderTotal ?? 0).toFixed(2)}
                           </div>
                         </div>
                       ) : (
@@ -621,7 +633,7 @@ export default function WaiterPOS() {
                   {filteredProducts.map(product => {
                     const cat = categories.find(c => c.id === product.categoryId);
                     const available = (product as any).isAvailable !== false;
-                    const imageUrl = (product as any).imageUrl;
+                    const imageUrl = resolveRegisterProductImage(product.name, (product as any).imageUrl);
                     return (
                       <div
                         key={product.id}

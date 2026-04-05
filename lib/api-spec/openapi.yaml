@@ -1567,6 +1567,15 @@ components:
           type: boolean
         token:
           type: string
+        activeOrderId:
+          type: string
+          nullable: true
+        activeOrderSessionId:
+          type: string
+          nullable: true
+        activeOrderTotal:
+          type: number
+          nullable: true
       required:
         - id
         - floorId

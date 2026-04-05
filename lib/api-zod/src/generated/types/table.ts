@@ -13,4 +13,7 @@ export interface Table {
   seats: number;
   active: boolean;
   token: string;
+  activeOrderId?: string | null;
+  activeOrderSessionId?: string | null;
+  activeOrderTotal?: number | null;
 }

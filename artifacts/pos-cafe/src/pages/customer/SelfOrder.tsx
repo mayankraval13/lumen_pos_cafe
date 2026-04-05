@@ -11,6 +11,7 @@ import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { useSocket } from '../../hooks/useSocket';
+import { resolveRegisterProductImage } from '../../lib/productImage';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Variant = { id: string; attribute: string; value: string; extraPrice: number };
@@ -340,6 +341,7 @@ function ProductModal({
 
   const unitPrice = product.price + (selectedVariant?.extraPrice ?? 0);
   const lineTotal = unitPrice * qty;
+  const modalImageUrl = resolveRegisterProductImage(product.name, (product as any).imageUrl);
 
   function handleAdd() {
     onAdd({
@@ -363,6 +365,17 @@ function ProductModal({
 
         {/* Drag handle */}
         <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-5" />
+
+        {modalImageUrl && (
+          <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-4 -mt-1 border border-slate-100">
+            <img
+              src={modalImageUrl}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-start justify-between mb-1">
@@ -1262,36 +1275,64 @@ export default function SelfOrder() {
                 const cartQty = cart.filter(i => i.productId === product.id).reduce((s, i) => s + i.qty, 0);
                 const catColor = info.categories.find(c => c.id === product.categoryId)?.color ?? '#f97316';
                 const available = (product as any).isAvailable !== false;
+                const imageUrl = resolveRegisterProductImage(product.name, (product as any).imageUrl);
 
                 return (
                   <button
                     key={product.id}
                     onClick={() => available && setSelectedProduct(product)}
                     disabled={!available}
-                    className={`relative rounded-2xl border overflow-hidden text-left shadow-sm transition-all flex flex-col ${
+                    className={`relative rounded-2xl border overflow-hidden text-left shadow-sm transition-all flex flex-col justify-end min-h-[172px] ${
                       available
                         ? 'bg-white border-slate-200 hover:shadow-md hover:border-[#2d2f2f]/30 active:scale-[0.97]'
                         : 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
                     }`}
                   >
-                    {/* Colour band */}
-                    <div
-                      className="h-14 w-full flex items-center justify-center relative"
-                      style={{ backgroundColor: catColor + '22' }}
-                    >
-                      <UtensilsCrossed className="w-6 h-6" style={{ color: catColor, opacity: available ? 1 : 0.4 }} />
-                      {!available && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-200/60">
-                          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider bg-white/80 px-2 py-0.5 rounded-full">
-                            Unavailable
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3 flex-1 flex flex-col justify-between">
-                      <p className={`font-bold text-sm leading-tight mb-1 line-clamp-2 ${available ? 'text-slate-900' : 'text-slate-400'}`}>{product.name}</p>
+                    {imageUrl ? (
+                      <>
+                        <img
+                          src={imageUrl}
+                          alt=""
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/5 pointer-events-none" />
+                      </>
+                    ) : (
+                      <div
+                        className="absolute inset-0 flex items-start justify-center pt-4"
+                        style={{ backgroundColor: catColor + '22' }}
+                      >
+                        <UtensilsCrossed className="w-7 h-7" style={{ color: catColor, opacity: available ? 1 : 0.4 }} />
+                      </div>
+                    )}
+                    {!available && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-slate-900/35 z-20 rounded-2xl">
+                        <span className="text-[10px] font-bold text-white uppercase tracking-wider bg-slate-900/75 px-2 py-0.5 rounded-full">
+                          Unavailable
+                        </span>
+                      </div>
+                    )}
+                    <div className="relative z-10 p-3">
+                      <p
+                        className={`font-bold text-sm leading-tight mb-1 line-clamp-2 ${
+                          imageUrl
+                            ? available ? 'text-white drop-shadow-sm' : 'text-white/60'
+                            : available ? 'text-slate-900' : 'text-slate-400'
+                        }`}
+                      >
+                        {product.name}
+                      </p>
                       <div className="flex items-center justify-between mt-1">
-                        <span className={`font-extrabold text-sm ${available ? 'text-[#2d2f2f]' : 'text-slate-400'}`}>₹{product.price.toFixed(2)}</span>
+                        <span
+                          className={`font-extrabold text-sm ${
+                            imageUrl
+                              ? available ? 'text-white' : 'text-white/50'
+                              : available ? 'text-[#2d2f2f]' : 'text-slate-400'
+                          }`}
+                        >
+                          ₹{product.price.toFixed(2)}
+                        </span>
                         {cartQty > 0 && available && (
                           <span className="text-xs bg-[#ecfe8d] text-[#546200] font-bold px-2 py-0.5 rounded-full">
                             {cartQty} in cart

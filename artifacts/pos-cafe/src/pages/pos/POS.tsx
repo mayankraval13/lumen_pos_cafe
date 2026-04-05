@@ -35,6 +35,7 @@ import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { format } from 'date-fns';
+import { resolveRegisterProductImage } from '../../lib/productImage';
 
 export default function POS() {
   const [, setLocation] = useLocation();
@@ -117,11 +118,17 @@ export default function POS() {
 
   // Also capture tables occupied by cross-session self-orders (from tablesData.activeOrderId)
   const tableOrderMap = useMemo(() => {
-    const map: Record<string, OrderSummary | { id: string; tableId: string; status: 'DRAFT'; source: 'cross-session' }> = { ...sessionTableOrderMap };
-    (tablesData || []).forEach((table: any) => {
+    const map: Record<string, OrderSummary> = { ...sessionTableOrderMap };
+    (tablesData || []).forEach((table) => {
       if (table.activeOrderId && !map[table.id]) {
-        // Table has a DRAFT order from another session (e.g. self-order)
-        map[table.id] = { id: table.activeOrderId, tableId: table.id, status: 'DRAFT', source: 'cross-session' } as any;
+        map[table.id] = {
+          id: table.activeOrderId,
+          sessionId: table.activeOrderSessionId ?? '',
+          tableId: table.id,
+          status: 'DRAFT',
+          createdAt: '',
+          total: table.activeOrderTotal ?? 0,
+        };
       }
     });
     return map;
@@ -152,6 +159,10 @@ export default function POS() {
           duration: 6000,
         });
       }
+    });
+    on('order:updated', () => {
+      refetchTables();
+      refetchOrders();
     });
     on('payment:confirmed', (data: any) => {
       if (data?.source === 'CUSTOMER') {
@@ -647,7 +658,7 @@ export default function POS() {
                             Occupied
                           </div>
                           <div className="text-lg font-extrabold text-amber-700 leading-tight">
-                            ₹{occupying.total?.toFixed(2) || '0.00'}
+                            ₹{(occupying.total ?? table.activeOrderTotal ?? 0).toFixed(2)}
                           </div>
                         </div>
                       ) : (
@@ -718,7 +729,7 @@ export default function POS() {
                   {filteredProducts.map(product => {
                     const cat = categories.find(c => c.id === product.categoryId);
                     const available = (product as any).isAvailable !== false;
-                    const imageUrl = (product as any).imageUrl;
+                    const imageUrl = resolveRegisterProductImage(product.name, (product as any).imageUrl);
                     return (
                       <div
                         key={product.id}

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { db, floorsTable, tablesTable, posConfigTable, ordersTable } from "@workspace/db";
+import { db, floorsTable, tablesTable, posConfigTable, ordersTable, orderLinesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { verifyToken } from "../middlewares/auth";
 
@@ -69,11 +69,20 @@ router.get("/floors/:id/tables", verifyToken, async (req, res): Promise<void> =>
         .select()
         .from(ordersTable)
         .where(and(eq(ordersTable.tableId, table.id), eq(ordersTable.status, "DRAFT")))
+        .orderBy(ordersTable.createdAt)
         .limit(1);
+
+      let activeOrderTotal: number | null = null;
+      if (activeOrder) {
+        const lines = await db.select().from(orderLinesTable).where(eq(orderLinesTable.orderId, activeOrder.id));
+        activeOrderTotal = lines.reduce((sum, l) => sum + l.total, 0);
+      }
+
       return {
         ...table,
         activeOrderId: activeOrder?.id ?? null,
         activeOrderSessionId: activeOrder?.sessionId ?? null,
+        activeOrderTotal,
       };
     })
   );

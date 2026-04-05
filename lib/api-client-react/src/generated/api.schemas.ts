@@ -146,6 +146,9 @@ export interface Table {
   seats: number;
   active: boolean;
   token: string;
+  activeOrderId?: string | null;
+  activeOrderSessionId?: string | null;
+  activeOrderTotal?: number | null;
 }
 
 export interface Floor {
@@ -226,28 +229,11 @@ export interface PosConfig {
   /** @nullable */
   lastOpenedAt?: string | null;
   lastSaleAmount: number;
-  allowedPaymentMethods: string[];
-  allowedCashierIds: string[];
   floors?: Floor[];
 }
 
 export interface CreatePosConfigBody {
   name: string;
-  allowedPaymentMethods?: string[];
-  allowedCashierIds?: string[];
-}
-
-export interface UpdatePosConfigBody {
-  name?: string;
-  allowedPaymentMethods?: string[];
-  allowedCashierIds?: string[];
-}
-
-export interface UserSummary {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
 }
 
 export type PosSessionStatus =
