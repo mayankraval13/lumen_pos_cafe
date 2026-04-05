@@ -99,8 +99,7 @@ export default function Floors() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Floors & Tables</h2>
-          <p className="text-muted-foreground">Manage restaurant floors and seating layout.</p>
+          <p className="text-muted-foreground text-sm">Manage restaurant floors and seating layout.</p>
         </div>
         <Button onClick={handleOpenNew} data-testid="button-new-floor">
           <Plus className="w-4 h-4 mr-2" />

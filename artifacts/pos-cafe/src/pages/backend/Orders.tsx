@@ -96,8 +96,7 @@ export default function Orders() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Orders</h2>
-          <p className="text-muted-foreground text-sm mt-0.5">All orders across sessions, sorted newest first</p>
+          <p className="text-muted-foreground text-sm">All orders across sessions, sorted newest first</p>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
           <RefreshCw className="w-3.5 h-3.5" />

@@ -32,8 +32,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-          <p className="text-muted-foreground">Overview of your cafe's performance.</p>
+          <p className="text-muted-foreground text-sm">Overview of your cafe's performance.</p>
         </div>
         <div className="flex items-center gap-2">
           <Input 

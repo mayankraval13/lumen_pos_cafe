@@ -26,6 +26,9 @@ interface PendingPaymentRequest {
   orderIds: string[];       // ALL session order ids to be marked PAID
   amount: number;           // aggregate total across all session orders
   upiId: string | null;
+  razorpayQrId: string | null;
+  razorpayQrImageUrl: string | null;
+  razorpayAmount: number | null;
   tableId: string;
   tableNumber: string;
   requestedAt: number;      // epoch ms, for TTL
@@ -39,6 +42,68 @@ interface PendingPaymentRequest {
 const pendingPayments = new Map<string, PendingPaymentRequest>();
 // TTL: 30 minutes
 const PAYMENT_REQUEST_TTL_MS = 30 * 60 * 1000;
+
+type RazorpayQrResult = {
+  id: string;
+  imageUrl: string | null;
+  amountInInr: number;
+};
+
+async function createRazorpayTestQr(params: {
+  amountInInr: number;
+  tableNumber: string;
+  token: string;
+}): Promise<RazorpayQrResult | null> {
+  const keyId = process.env.RAZORPAY_KEY_ID?.trim();
+  const keySecret = process.env.RAZORPAY_KEY_SECRET?.trim();
+  if (!keyId || !keySecret) return null;
+
+  // Keep this integration in test mode only as requested.
+  if (!keyId.startsWith("rzp_test_")) return null;
+
+  const amountInPaise = Math.round(Math.max(0, params.amountInInr) * 100);
+  if (!amountInPaise) return null;
+
+  const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+  const payload = {
+    type: "upi_qr",
+    name: `Table ${params.tableNumber} - Test`,
+    usage: "multiple_use",
+    fixed_amount: true,
+    payment_amount: amountInPaise,
+    description: `Self-order payment for table ${params.tableNumber}`,
+    notes: {
+      source: "self-order",
+      tableToken: params.token,
+    },
+  };
+
+  try {
+    const response = await fetch("https://api.razorpay.com/v1/payments/qr_codes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Basic ${auth}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const json = (await response.json()) as { id?: string; image_url?: string | null };
+    if (!json?.id) return null;
+
+    return {
+      id: json.id,
+      imageUrl: json.image_url ?? null,
+      amountInInr: amountInPaise / 100,
+    };
+  } catch {
+    return null;
+  }
+}
 
 function cleanExpiredPayments() {
   const now = Date.now();
@@ -451,6 +516,7 @@ router.post("/self-order/:token/request-payment", async (req, res): Promise<void
   const orderIds = sessionOrders.map(o => o.id);
   const primaryOrderId = orderIds[0];
   const splitAmountEach = parseFloat((totalAmount / splitParts).toFixed(2));
+  const requestedAmount = splitParts > 1 ? splitAmountEach : totalAmount;
 
   let resolvedUpiId: string | null =
     typeof upiId === "string" && upiId.trim() ? upiId.trim() : null;
@@ -463,6 +529,12 @@ router.post("/self-order/:token/request-payment", async (req, res): Promise<void
     resolvedUpiId = upiRow?.upiId?.trim() || null;
   }
 
+  const razorpayQr = await createRazorpayTestQr({
+    amountInInr: requestedAmount,
+    tableNumber: table.tableNumber,
+    token,
+  });
+
   // Persist in-memory so polling customer page can pick it up
   cleanExpiredPayments();
   pendingPayments.set(token, {
@@ -470,6 +542,9 @@ router.post("/self-order/:token/request-payment", async (req, res): Promise<void
     orderIds,
     amount: totalAmount,
     upiId: resolvedUpiId,
+    razorpayQrId: razorpayQr?.id ?? null,
+    razorpayQrImageUrl: razorpayQr?.imageUrl ?? null,
+    razorpayAmount: razorpayQr?.amountInInr ?? null,
     tableId: table.id,
     tableNumber: table.tableNumber,
     requestedAt: Date.now(),
@@ -487,6 +562,9 @@ router.post("/self-order/:token/request-payment", async (req, res): Promise<void
     orderId: primaryOrderId,
     amount: totalAmount,
     upiId: resolvedUpiId,
+    razorpayQrId: razorpayQr?.id ?? null,
+    razorpayQrImageUrl: razorpayQr?.imageUrl ?? null,
+    razorpayAmount: razorpayQr?.amountInInr ?? null,
     splitParts,
     splitAmountEach,
     collectedParts: 0,
@@ -512,6 +590,9 @@ router.post("/self-order/:token/nudge-payment", async (req, res): Promise<void> 
     orderId: pending.orderId,
     amount: pending.amount,
     upiId: pending.upiId,
+    razorpayQrId: pending.razorpayQrId,
+    razorpayQrImageUrl: pending.razorpayQrImageUrl,
+    razorpayAmount: pending.razorpayAmount,
     splitParts: pending.splitParts,
     splitAmountEach: pending.splitAmountEach,
     collectedParts: pending.collectedParts,

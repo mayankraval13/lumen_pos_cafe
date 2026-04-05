@@ -108,8 +108,7 @@ export default function Payments() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Total Payments</h2>
-        <p className="text-muted-foreground">Payment transactions and revenue breakdown.</p>
+        <p className="text-muted-foreground text-sm">Payment transactions and revenue breakdown.</p>
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────────────── */}

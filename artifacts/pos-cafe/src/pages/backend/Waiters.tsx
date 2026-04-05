@@ -187,7 +187,7 @@ export default function Waiters() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-muted-foreground text-sm">
             Add waiters, assign restaurants and specific tables to each waiter.
           </p>
         </div>

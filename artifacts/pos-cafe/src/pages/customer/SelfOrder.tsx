@@ -5,7 +5,7 @@ import {
   Coffee, ShoppingBag, Plus, Minus, ChevronLeft, CheckCircle,
   Clock, Flame, ChefHat, QrCode, Smartphone, UtensilsCrossed,
   SlidersHorizontal, CreditCard, Banknote, X, Download,
-  ArrowRight, ReceiptText, Star,
+  ArrowRight, ReceiptText, Star, Gamepad2, RotateCcw,
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { toast } from 'sonner';
@@ -39,6 +39,9 @@ type PaymentRequest = {
   orderId: string;
   amount: number;         // total bill amount
   upiId: string | null;
+  razorpayQrId?: string | null;
+  razorpayQrImageUrl?: string | null;
+  razorpayAmount?: number | null;
   tableId: string;
   splitParts?: number;    // how many equal parts (1 or undefined = no split)
   splitAmountEach?: number; // amount per part
@@ -189,6 +192,131 @@ function CountdownCircle({ seconds, total }: { seconds: number; total: number })
         />
       </svg>
       <span className="text-2xl font-bold text-green-700">{seconds}</span>
+    </div>
+  );
+}
+
+// ─── Tic-Tac-Toe (2-player, same-device) ──────────────────────────────────
+type CellValue = 'X' | 'O' | null;
+const WINNING_LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6],
+];
+
+function checkWinner(board: CellValue[]): { winner: 'X' | 'O'; line: number[] } | null {
+  for (const combo of WINNING_LINES) {
+    const [a, b, c] = combo;
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return { winner: board[a]!, line: combo };
+    }
+  }
+  return null;
+}
+
+function TicTacToe({ onClose }: { onClose: () => void }) {
+  const [board, setBoard] = useState<CellValue[]>(Array(9).fill(null));
+  const [xIsNext, setXIsNext] = useState(true);
+  const [scores, setScores] = useState({ X: 0, O: 0 });
+  const scoredRef = useRef(false);
+
+  const result = checkWinner(board);
+  const isDraw = !result && board.every(Boolean);
+  const gameOver = !!result || isDraw;
+
+  function handleTap(i: number) {
+    if (board[i] || gameOver) return;
+    const next = [...board];
+    const mark = xIsNext ? 'X' as const : 'O' as const;
+    next[i] = mark;
+
+    const win = checkWinner(next);
+    if (win && !scoredRef.current) {
+      scoredRef.current = true;
+      setScores(prev => ({ ...prev, [win.winner]: prev[win.winner] + 1 }));
+    }
+
+    setBoard(next);
+    setXIsNext(!xIsNext);
+  }
+
+  function resetBoard() {
+    setBoard(Array(9).fill(null));
+    setXIsNext(true);
+    scoredRef.current = false;
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div className="bg-[#2d2f2f] px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Gamepad2 className="w-4 h-4 text-[#ecfe8d]" />
+          <span className="font-bold text-sm text-white">Tic-Tac-Toe</span>
+        </div>
+        <button onClick={onClose} className="w-7 h-7 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center transition-colors">
+          <X className="w-3.5 h-3.5 text-white/70" />
+        </button>
+      </div>
+
+      <div className="p-4 flex flex-col items-center gap-3">
+        {/* Scoreboard */}
+        <div className="flex items-center gap-6 text-center">
+          <div className={`flex flex-col items-center px-4 py-1.5 rounded-xl ${!gameOver && xIsNext ? 'bg-blue-50 ring-2 ring-blue-300' : ''}`}>
+            <span className="text-lg font-extrabold text-blue-600">X</span>
+            <span className="text-xs text-slate-500 font-semibold">{scores.X} wins</span>
+          </div>
+          <span className="text-slate-300 font-bold text-sm">VS</span>
+          <div className={`flex flex-col items-center px-4 py-1.5 rounded-xl ${!gameOver && !xIsNext ? 'bg-rose-50 ring-2 ring-rose-300' : ''}`}>
+            <span className="text-lg font-extrabold text-rose-500">O</span>
+            <span className="text-xs text-slate-500 font-semibold">{scores.O} wins</span>
+          </div>
+        </div>
+
+        {/* Board */}
+        <div className="grid grid-cols-3 gap-2 w-full max-w-[240px] aspect-square">
+          {board.map((cell, i) => {
+            const isWinCell = result?.line.includes(i);
+            return (
+              <button
+                key={i}
+                onClick={() => handleTap(i)}
+                className={`rounded-xl text-2xl font-extrabold flex items-center justify-center transition-all active:scale-95
+                  ${cell ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100'}
+                  ${isWinCell ? 'bg-green-100 ring-2 ring-green-400' : 'bg-slate-50 border border-slate-200'}
+                `}
+              >
+                {cell === 'X' && <span className="text-blue-600">✕</span>}
+                {cell === 'O' && <span className="text-rose-500">○</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Status + Reset */}
+        <div className="flex items-center gap-3">
+          {result ? (
+            <span className="text-sm font-bold text-green-700">
+              {result.winner === 'X' ? '✕' : '○'} wins! 🎉
+            </span>
+          ) : isDraw ? (
+            <span className="text-sm font-bold text-slate-500">It's a draw!</span>
+          ) : (
+            <span className="text-sm text-slate-500">
+              <span className={`font-bold ${xIsNext ? 'text-blue-600' : 'text-rose-500'}`}>
+                {xIsNext ? '✕' : '○'}
+              </span>'s turn
+            </span>
+          )}
+          {gameOver && (
+            <button
+              onClick={resetBoard}
+              className="flex items-center gap-1.5 text-xs font-semibold text-[#546200] bg-[#ecfe8d] hover:bg-[#ddef70] px-3.5 py-1.5 rounded-full transition-colors shadow-sm"
+            >
+              <RotateCcw className="w-3 h-3" /> Play Again
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -482,6 +610,7 @@ export default function SelfOrder() {
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [selectedPayMethod, setSelectedPayMethod] = useState<'UPI' | 'CASH' | 'DIGITAL'>('CASH');
   const [selectedProduct, setSelectedProduct] = useState<ProductWithVariants | null>(null);
+  const [showGame, setShowGame] = useState(false);
   const tableIdRef = useRef<string>('');
   const payMethodRef = useRef<string>('CASH');
 
@@ -906,6 +1035,8 @@ export default function SelfOrder() {
     const nextPartNumber = (paymentRequest.collectedParts ?? 0) + 1;
 
     const effectiveUpiId = resolveSelfOrderUpiId(info, paymentRequest.upiId);
+    const hasRazorpayQr = !!paymentRequest.razorpayQrImageUrl;
+    const razorpayAmount = paymentRequest.razorpayAmount ?? payAmount;
 
     return (
       <div className="h-[100dvh] w-full flex flex-col bg-slate-50 max-w-md mx-auto shadow-2xl">
@@ -930,7 +1061,24 @@ export default function SelfOrder() {
               <p className="text-purple-600 text-xs mt-1">Each person pays ₹{payAmount.toFixed(2)}</p>
             </div>
           )}
-          {effectiveUpiId ? (
+          {hasRazorpayQr ? (
+            <div className="w-full bg-white rounded-2xl shadow-sm border p-6 flex flex-col items-center">
+              <h3 className="font-bold text-lg mb-1 text-slate-800 text-center">
+                {isSplit ? `Razorpay Test QR (part ${nextPartNumber})` : 'Razorpay Test QR'}
+              </h3>
+              <p className="text-sm text-slate-500 mb-4 text-center">
+                Scan with any UPI app. This setup is in Razorpay test mode.
+              </p>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <img
+                  src={paymentRequest.razorpayQrImageUrl!}
+                  alt="Razorpay payment QR"
+                  className="w-[200px] h-[200px] object-contain"
+                />
+              </div>
+              <p className="text-base font-extrabold text-[#2d2f2f] mt-3">₹{razorpayAmount.toFixed(2)}</p>
+            </div>
+          ) : effectiveUpiId ? (
             <SelfOrderUpiQrCard
               title={isSplit ? `Pay your share (part ${nextPartNumber})` : "Scan to pay with UPI"}
               subtitle="Use PhonePe, Google Pay, Paytm, or any UPI app"
@@ -983,6 +1131,7 @@ export default function SelfOrder() {
     const remaining = splitParts - collectedParts;
     const shareAmount = paymentRequest.splitAmountEach ?? 0;
     const partialUpiId = resolveSelfOrderUpiId(info, paymentRequest.upiId);
+    const partialRazorpayQr = paymentRequest.razorpayQrImageUrl;
     return (
       <div className="h-[100dvh] w-full flex flex-col bg-slate-50 max-w-md mx-auto shadow-2xl overflow-y-auto">
         <div className="flex flex-col items-center p-6 pt-8 text-center shrink-0">
@@ -1006,7 +1155,26 @@ export default function SelfOrder() {
           </p>
         </div>
 
-        {partialUpiId && remaining > 0 && shareAmount > 0 && (
+        {partialRazorpayQr && remaining > 0 && shareAmount > 0 && (
+          <div className="px-4 pb-4">
+            <div className="w-full bg-white rounded-2xl shadow-sm border p-6 flex flex-col items-center">
+              <h3 className="font-bold text-lg mb-1 text-slate-800 text-center">Razorpay Test QR</h3>
+              <p className="text-sm text-slate-500 mb-4 text-center">
+                Next person can scan this QR to pay one share.
+              </p>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <img
+                  src={partialRazorpayQr}
+                  alt="Razorpay payment QR"
+                  className="w-[180px] h-[180px] object-contain"
+                />
+              </div>
+              <p className="text-base font-extrabold text-[#2d2f2f] mt-3">₹{shareAmount.toFixed(2)}</p>
+            </div>
+          </div>
+        )}
+
+        {!partialRazorpayQr && partialUpiId && remaining > 0 && shareAmount > 0 && (
           <div className="px-4 pb-4">
             <SelfOrderUpiQrCard
               title="QR for the next payment"
@@ -1393,6 +1561,26 @@ export default function SelfOrder() {
           Add More Items
         </button>
       </div>
+
+      {/* Floating game FAB */}
+      {!isAllReady && orders.length > 0 && !showGame && (
+        <button
+          onClick={() => setShowGame(true)}
+          className="fixed bottom-24 right-5 z-30 w-14 h-14 rounded-full bg-[#2d2f2f] text-[#ecfe8d] shadow-[0_4px_14px_rgba(0,0,0,0.25)] flex items-center justify-center transition-transform active:scale-90 hover:scale-105"
+        >
+          <Gamepad2 className="w-6 h-6" />
+        </button>
+      )}
+
+      {/* Game overlay */}
+      {showGame && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowGame(false)}>
+          <div className="w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <TicTacToe onClose={() => setShowGame(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

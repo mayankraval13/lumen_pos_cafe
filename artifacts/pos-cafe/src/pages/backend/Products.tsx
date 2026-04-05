@@ -133,8 +133,7 @@ export default function Products() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Products</h2>
-          <p className="text-muted-foreground">Manage your product catalog.</p>
+          <p className="text-muted-foreground text-sm">Manage your product catalog.</p>
         </div>
         <Button onClick={handleOpenNew} data-testid="button-new-product">
           <Plus className="w-4 h-4 mr-2" />

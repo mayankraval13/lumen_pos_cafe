@@ -260,8 +260,7 @@ export default function PosConfig() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Point of Sale</h2>
-          <p className="text-muted-foreground">Manage POS terminals. Configure payment methods and cashiers per terminal.</p>
+          <p className="text-muted-foreground text-sm">Manage POS terminals. Configure payment methods and cashiers per terminal.</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} data-testid="button-new-pos">
           <Plus className="w-4 h-4 mr-2" />

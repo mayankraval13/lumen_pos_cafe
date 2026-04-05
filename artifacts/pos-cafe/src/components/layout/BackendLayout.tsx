@@ -100,7 +100,7 @@ export const BackendLayout: React.FC<BackendLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col overflow-hidden bg-[#d2d2d2]">
         <header className="h-20 bg-transparent flex items-center justify-between px-10">
           <h1 className="text-3xl font-semibold text-[#2d2f2f] tracking-tight">
-            {location.split('/').pop()?.replace('-', ' ')}
+            {navigation.find((n) => location.startsWith(n.href))?.name ?? ''}
           </h1>
           <div className="flex items-center space-x-4">
             <Link href="/pos">
@@ -114,7 +114,6 @@ export const BackendLayout: React.FC<BackendLayoutProps> = ({ children }) => {
           </div>
         </header>
         <main className="flex-1 overflow-y-auto px-10 pb-10">
-          {/* Card containers inside children should use the new card style, but since they might be using shadcn Card, we will update the global CSS for card to be white with 20px radius. We already updated CSS --radius to 20px. */}
           {children}
         </main>
       </div>

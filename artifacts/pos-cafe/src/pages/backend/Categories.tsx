@@ -104,8 +104,7 @@ export default function Categories() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Categories</h2>
-          <p className="text-muted-foreground">Manage your product categories and their display colors.</p>
+          <p className="text-muted-foreground text-sm">Manage your product categories and their display colors.</p>
         </div>
         <Button onClick={handleOpenNew} data-testid="button-new-category">
           <Plus className="w-4 h-4 mr-2" />

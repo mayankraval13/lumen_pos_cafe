@@ -133,9 +133,8 @@ export default function FloorDetails() {
           </Button>
         </Link>
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">{floor?.name || 'Floor Details'}</h2>
-          <p className="text-muted-foreground">
-            {tables.length} table{tables.length !== 1 ? 's' : ''} · {activeTables.length} active · {inactiveTables.length} inactive
+          <p className="text-muted-foreground text-sm">
+            {floor?.name} · {tables.length} table{tables.length !== 1 ? 's' : ''} · {activeTables.length} active · {inactiveTables.length} inactive
           </p>
         </div>
         <div className="ml-auto flex items-center space-x-2">

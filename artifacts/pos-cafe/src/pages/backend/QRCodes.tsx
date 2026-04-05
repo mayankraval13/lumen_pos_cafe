@@ -172,10 +172,9 @@ export default function QRCodes() {
 
   return (
     <div className="space-y-6">
-      {/* Top bar */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground">
             {allTables.length} table{allTables.length !== 1 ? 's' : ''} across {(floors as any[]).length} floor{(floors as any[]).length !== 1 ? 's' : ''}
           </p>
         </div>
