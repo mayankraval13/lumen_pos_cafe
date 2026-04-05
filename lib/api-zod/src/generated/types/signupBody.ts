@@ -13,4 +13,6 @@ export interface SignupBody {
   /** @minLength 6 */
   password: string;
   role?: SignupBodyRole;
+  /** Email verification code (required for allowed signup addresses) */
+  otp?: string;
 }

@@ -67,6 +67,8 @@ export * from "./productVariant";
 export * from "./selfOrderInfo";
 export * from "./signupBody";
 export * from "./signupBodyRole";
+export * from "./signupRequestOtpBody";
+export * from "./signupRequestOtpResponse";
 export * from "./table";
 export * from "./updateKitchenItemBody";
 export * from "./updateKitchenTicketStatusBody";

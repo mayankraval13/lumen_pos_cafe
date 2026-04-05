@@ -24,6 +24,23 @@ export const SignupBody = zod.object({
   email: zod.string().email(),
   password: zod.string().min(signupBodyPasswordMin),
   role: zod.enum(["ADMIN", "CASHIER"]).optional(),
+  otp: zod
+    .string()
+    .optional()
+    .describe(
+      "Email verification code (required for allowed signup addresses)",
+    ),
+});
+
+/**
+ * @summary Send email OTP for sign up (allowed email only)
+ */
+export const RequestSignupOtpBody = zod.object({
+  email: zod.string().email(),
+});
+
+export const RequestSignupOtpResponse = zod.object({
+  ok: zod.boolean(),
 });
 
 /**

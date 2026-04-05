@@ -61,6 +61,8 @@ import type {
   ProductVariant,
   SelfOrderInfo,
   SignupBody,
+  SignupRequestOtpBody,
+  SignupRequestOtpResponse,
   Table,
   UpdateKitchenItemBody,
   UpdateKitchenTicketStatusBody,
@@ -239,6 +241,92 @@ export const useSignup = <
   TContext
 > => {
   return useMutation(getSignupMutationOptions(options));
+};
+
+/**
+ * @summary Send email OTP for sign up (allowed email only)
+ */
+export const getRequestSignupOtpUrl = () => {
+  return `/api/auth/signup/request-otp`;
+};
+
+export const requestSignupOtp = async (
+  signupRequestOtpBody: SignupRequestOtpBody,
+  options?: RequestInit,
+): Promise<SignupRequestOtpResponse> => {
+  return customFetch<SignupRequestOtpResponse>(getRequestSignupOtpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(signupRequestOtpBody),
+  });
+};
+
+export const getRequestSignupOtpMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestSignupOtp>>,
+    TError,
+    { data: BodyType<SignupRequestOtpBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestSignupOtp>>,
+  TError,
+  { data: BodyType<SignupRequestOtpBody> },
+  TContext
+> => {
+  const mutationKey = ["requestSignupOtp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestSignupOtp>>,
+    { data: BodyType<SignupRequestOtpBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return requestSignupOtp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RequestSignupOtpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestSignupOtp>>
+>;
+export type RequestSignupOtpMutationBody = BodyType<SignupRequestOtpBody>;
+export type RequestSignupOtpMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Send email OTP for sign up (allowed email only)
+ */
+export const useRequestSignupOtp = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestSignupOtp>>,
+    TError,
+    { data: BodyType<SignupRequestOtpBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof requestSignupOtp>>,
+  TError,
+  { data: BodyType<SignupRequestOtpBody> },
+  TContext
+> => {
+  return useMutation(getRequestSignupOtpMutationOptions(options));
 };
 
 /**

@@ -25,7 +25,18 @@ const basePath = process.env.BASE_PATH ?? "/";
 
 const isReplit = process.env.REPL_ID !== undefined;
 
-const LOCAL_API_PORT = 3001;
+const LOCAL_API_PORT = process.env.VITE_API_PORT?.trim() || "3001";
+/** Prefer 127.0.0.1 over localhost to avoid IPv6 (::1) vs IPv4 listen mismatches on Windows. */
+const apiProxyTarget =
+  process.env.VITE_API_PROXY_TARGET?.trim() || `http://127.0.0.1:${LOCAL_API_PORT}`;
+
+const apiDevProxy: Record<string, import("vite").ProxyOptions> = {
+  "/api": { target: apiProxyTarget, changeOrigin: true },
+  "/socket.io": { target: apiProxyTarget, changeOrigin: true, ws: true },
+};
+
+/** Proxy /api to the Node server. Set VITE_DISABLE_API_PROXY=true only if another layer handles API (e.g. Replit). */
+const useApiDevProxy = process.env.VITE_DISABLE_API_PROXY !== "true";
 
 export default defineConfig({
   base: basePath,
@@ -69,23 +80,13 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
-    proxy: isReplit
-      ? undefined
-      : {
-          "/api": {
-            target: `http://localhost:${LOCAL_API_PORT}`,
-            changeOrigin: true,
-          },
-          "/socket.io": {
-            target: `http://localhost:${LOCAL_API_PORT}`,
-            changeOrigin: true,
-            ws: true,
-          },
-        },
+    proxy: useApiDevProxy ? apiDevProxy : undefined,
   },
   preview: {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    // `vite preview` does not inherit `server.proxy` — without this, /api/* returns 404.
+    proxy: useApiDevProxy ? { ...apiDevProxy } : undefined,
   },
 });
