@@ -140,6 +140,57 @@ router.get("/reporting/dashboard", verifyToken, async (req, res): Promise<void> 
   });
 });
 
+// ─── Today's sales per product (for PDF report) ─────────────────────────────
+router.get("/reporting/today-products", verifyToken, async (_req, res): Promise<void> => {
+  const now = new Date();
+  const startOfDay = new Date(now);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(now);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const paidToday = and(
+    eq(ordersTable.status, "PAID"),
+    gte(ordersTable.createdAt, startOfDay),
+    lte(ordersTable.createdAt, endOfDay),
+  );
+
+  const [totals] = await db
+    .select({
+      totalOrders: sql<number>`count(distinct ${ordersTable.id})::int`,
+      totalRevenue: sql<number>`coalesce(sum(${orderLinesTable.total}), 0)::float`,
+    })
+    .from(ordersTable)
+    .innerJoin(orderLinesTable, eq(orderLinesTable.orderId, ordersTable.id))
+    .where(paidToday);
+
+  const products = await db
+    .select({
+      productId: productsTable.id,
+      name: productsTable.name,
+      category: categoriesTable.name,
+      qty: sql<number>`sum(${orderLinesTable.qty})::int`,
+      revenue: sql<number>`sum(${orderLinesTable.total})::float`,
+    })
+    .from(orderLinesTable)
+    .innerJoin(ordersTable, eq(ordersTable.id, orderLinesTable.orderId))
+    .innerJoin(productsTable, eq(productsTable.id, orderLinesTable.productId))
+    .innerJoin(categoriesTable, eq(categoriesTable.id, productsTable.categoryId))
+    .where(paidToday)
+    .groupBy(productsTable.id, productsTable.name, categoriesTable.name)
+    .orderBy(sql`sum(${orderLinesTable.total}) DESC`);
+
+  const totalOrders = totals?.totalOrders ?? 0;
+  const totalRevenue = totals?.totalRevenue ?? 0;
+
+  res.json({
+    date: now.toISOString(),
+    totalOrders,
+    totalRevenue,
+    avgOrder: totalOrders > 0 ? totalRevenue / totalOrders : 0,
+    products,
+  });
+});
+
 // ─── Payments report ─────────────────────────────────────────────────────────
 router.get("/reporting/payments", verifyToken, async (req, res): Promise<void> => {
   const { dateFrom, dateTo, method, preset } = req.query as Record<string, string>;
