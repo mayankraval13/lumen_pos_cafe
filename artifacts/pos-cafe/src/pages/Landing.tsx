@@ -100,6 +100,9 @@ export default function Landing() {
           <p className="text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed">
             Lumen POS connects your floor, kitchen, and customers in real time —
             from QR self-order to kitchen display to cashier terminal.
+          <h4 className="text-2xl font-bold text-white">
+            <span className="text-[#ecfe8d]">Built By</span> Mayank, Aastha & Rudra...
+          </h4>
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -197,7 +200,7 @@ export default function Landing() {
       </section>
 
       {/* ── TERMINALS ── */}
-      <section id="terminals" className="bg-[#d2d2d2] py-24 px-6">
+      <section id="terminals" className="bg-[#f5f5f0] py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-xs font-bold uppercase tracking-widest text-[#5a5c5c] mb-3">Four terminals</p>
@@ -209,72 +212,61 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-5">
             {[
               {
-                icon: <Monitor className="w-7 h-7" />,
+                icon: <Monitor className="w-6 h-6" />,
                 label: 'POS Terminal',
                 href: '/pos',
-                color: 'bg-[#2d2f2f]',
-                iconBg: 'bg-[#ecfe8d]/20 text-[#ecfe8d]',
                 desc: 'Full-featured cashier terminal with floor plan, product grid, numpad, split payments, and customer display.',
                 features: ['Floor plan view', 'Numpad-driven order entry', 'Split & partial payments', 'Customer display'],
-                cta: 'Open POS →',
-                ctaStyle: 'bg-[#ecfe8d] text-[#2d2f2f] hover:bg-[#d8eb7a]',
+                cta: 'Open POS',
               },
               {
-                icon: <ChefHat className="w-7 h-7" />,
+                icon: <ChefHat className="w-6 h-6" />,
                 label: 'Kitchen Display',
                 href: '/kitchen',
-                color: 'bg-amber-500',
-                iconBg: 'bg-white/20 text-white',
                 desc: 'Live kanban board for kitchen staff — ticket queue, item checkboxes, and one-tap status updates.',
                 features: ['To Cook → Preparing → Ready', 'Per-item prep checkboxes', 'Urgency alerts', 'Live socket updates'],
-                cta: 'Open Kitchen →',
-                ctaStyle: 'bg-white text-amber-700 hover:bg-amber-50',
+                cta: 'Open Kitchen',
               },
               {
-                icon: <Tablet className="w-7 h-7" />,
+                icon: <Tablet className="w-6 h-6" />,
                 label: 'Waiter Portal',
                 href: '/waiter',
-                color: 'bg-blue-600',
-                iconBg: 'bg-white/20 text-white',
                 desc: 'Mobile-friendly waiter interface for table selection, order taking, and sending to kitchen.',
                 features: ['Floor plan table picker', 'Product search & categories', 'Send to kitchen', 'Request payment'],
-                cta: 'Open Waiter Portal →',
-                ctaStyle: 'bg-white text-blue-700 hover:bg-blue-50',
+                cta: 'Open Waiter Portal',
               },
               {
-                icon: <QrCode className="w-7 h-7" />,
+                icon: <QrCode className="w-6 h-6" />,
                 label: 'Self-Order (QR)',
                 href: '/backend/qr-codes',
-                color: 'bg-emerald-600',
-                iconBg: 'bg-white/20 text-white',
                 desc: 'Guests scan a table QR code and order directly from their phone — no app install needed.',
                 features: ['Menu browsing', 'Variants & notes', 'UPI / Cash / Card', 'Live order tracking'],
-                cta: 'Manage QR Codes →',
-                ctaStyle: 'bg-white text-emerald-700 hover:bg-emerald-50',
+                cta: 'Manage QR Codes',
               },
             ].map(t => (
-              <div key={t.label} className={`${t.color} rounded-3xl p-8 text-white flex flex-col gap-5`}>
+              <div key={t.label} className="bg-white rounded-2xl p-7 border border-[#e5e5e0] hover:border-[#2d2f2f]/15 hover:shadow-lg transition-all group flex flex-col gap-4">
                 <div className="flex items-start justify-between">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${t.iconBg}`}>
+                  <div className="w-12 h-12 rounded-xl bg-[#2d2f2f] flex items-center justify-center text-[#ecfe8d]">
                     {t.icon}
                   </div>
-                  <span className="text-xs font-bold uppercase tracking-widest opacity-60">{t.label}</span>
+                  <span className="text-[11px] font-bold uppercase tracking-widest text-[#b0b0a8]">{t.label}</span>
                 </div>
-                <p className="text-sm leading-relaxed opacity-80">{t.desc}</p>
-                <ul className="space-y-1.5">
+                <p className="text-sm text-[#5a5c5c] leading-relaxed">{t.desc}</p>
+                <ul className="space-y-1.5 flex-1">
                   {t.features.map(f => (
-                    <li key={f} className="flex items-center gap-2 text-sm opacity-90">
-                      <CheckCircle className="w-3.5 h-3.5 opacity-70 shrink-0" />
+                    <li key={f} className="flex items-center gap-2 text-[13px] text-[#2d2f2f]">
+                      <CheckCircle className="w-3.5 h-3.5 text-[#2d2f2f]/30 shrink-0" />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Link href={t.href}>
-                  <span className={`mt-auto inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-colors cursor-pointer ${t.ctaStyle}`}>
+                  <span className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-bold bg-[#2d2f2f] text-white hover:bg-[#3a3c3c] transition-colors cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                     {t.cta}
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </Link>
               </div>
